@@ -6,7 +6,6 @@ from app.schemas.comment_schemas import CommentCreate, CommentResponse
 
 router = APIRouter(prefix="/tickets/{ticket_id}/comments", tags=["comments"])
 
-
 @router.post("", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
 def create_comment(
     ticket_id: int,
