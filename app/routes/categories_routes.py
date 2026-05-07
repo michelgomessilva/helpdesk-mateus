@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 
 from app.schemas.category_schemas import CategoryCreate, CategoryResponse
 from app.services import CategoryService
-from app.repositories import CategoryRepository
+from infrastructure.repositories import CategoryRepository
 from app.core.dependencies import get_category_repository
 
 router = APIRouter(prefix="/categories", tags=["categories"])
@@ -17,13 +17,11 @@ def create_category(
     service = CategoryService(repository=category_repo)
     return service.create_category(category.model_dump())
 
-
 @router.get("/", response_model=list[CategoryResponse])
 def list_categories(category_repo: CategoryRepository = Depends(get_category_repository)):
     """Lista todas as categorias"""
     service = CategoryService(repository=category_repo)
     return service.get_all_categories()
-
 
 @router.get("/{category_id}", response_model=CategoryResponse)
 def get_category(
@@ -40,7 +38,6 @@ def get_category(
         )
     return category
 
-
 @router.patch("/{category_id}", response_model=CategoryResponse)
 def update_category(
     category_id: int,
@@ -56,7 +53,6 @@ def update_category(
             detail=f"Categoria com ID {category_id} não encontrada"
         )
     return updated
-
 
 @router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_category(

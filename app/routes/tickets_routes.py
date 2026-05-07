@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 
 from app.schemas.ticket_schemas import TicketCreate, TicketResponse, TicketUpdate
 from app.services import TicketService, CategoryService
-from app.repositories import TicketRepository, CategoryRepository
+from infrastructure.repositories import TicketRepository, CategoryRepository
 from app.core.dependencies import get_ticket_repository, get_category_repository
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
@@ -28,7 +28,6 @@ def create_ticket(
     
     return ticket_service.create_ticket(ticket.model_dump())
 
-
 @router.get("/", response_model=list[TicketResponse])
 def list_tickets(
     ticket_repo: TicketRepository = Depends(get_ticket_repository),
@@ -52,7 +51,6 @@ def list_tickets(
 
     return service.list_tickets(filters, skip, limit)
 
-
 @router.get("/{ticket_id}", response_model=TicketResponse)
 def get_ticket(ticket_id: int, ticket_repo: TicketRepository = Depends(get_ticket_repository)):
     """Obtém um ticket pelo ID"""
@@ -64,7 +62,6 @@ def get_ticket(ticket_id: int, ticket_repo: TicketRepository = Depends(get_ticke
             detail=f"Ticket com ID {ticket_id} não encontrado"
         )
     return ticket
-
 
 @router.patch("/{ticket_id}", response_model=TicketResponse)
 def update_ticket(
