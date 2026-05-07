@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 
 from app.schemas.ticket_schemas import TicketCreate, TicketResponse, TicketUpdate
 from app.services import TicketService, CategoryService
-from app.repositories import TicketRepository, CategoryRepository
+from infrastructure.repositories import TicketRepository, CategoryRepository
 from app.core.dependencies import get_ticket_repository, get_category_repository
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])

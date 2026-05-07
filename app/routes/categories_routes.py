@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 
 from app.schemas.category_schemas import CategoryCreate, CategoryResponse
 from app.services import CategoryService
-from app.repositories import CategoryRepository
+from infrastructure.repositories import CategoryRepository
 from app.core.dependencies import get_category_repository
 
 router = APIRouter(prefix="/categories", tags=["categories"])

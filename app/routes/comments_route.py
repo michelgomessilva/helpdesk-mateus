@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from app.services.comment_service import CommentService
-from app.repositories import CommentRepository, TicketRepository
+from infrastructure.repositories import CommentRepository, TicketRepository
 from app.core.dependencies import get_comment_repository, get_ticket_repository
 from app.schemas.comment_schemas import CommentCreate, CommentResponse
 
@@ -22,4 +22,3 @@ def create_comment(
         raise HTTPException(status_code=404, detail=str(e))
 
     return CommentResponse(**comment)
-

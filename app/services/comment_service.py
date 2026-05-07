@@ -1,5 +1,5 @@
-from app.repositories.comment_repository import CommentRepository
-from app.repositories.ticket_repository import TicketRepository
+from infrastructure.repositories.comment_repository import CommentRepository
+from infrastructure.repositories.ticket_repository import TicketRepository
 
 
 class CommentService():

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from app.repositories import TicketRepository
+from infrastructure.repositories import TicketRepository
 
 
 class TicketService(BaseModel):

@@ -1,6 +1,6 @@
-from app.repositories.category_repository import CategoryRepository
-from app.repositories.comment_repository import CommentRepository
-from app.repositories.ticket_repository import TicketRepository
+from infrastructure.repositories.category_repository import CategoryRepository
+from infrastructure.repositories.comment_repository import CommentRepository
+from infrastructure.repositories.ticket_repository import TicketRepository
 
 _category_repository: CategoryRepository | None = None
 _comment_repository: CommentRepository | None = None
