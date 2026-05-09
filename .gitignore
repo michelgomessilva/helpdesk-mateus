@@ -8,6 +8,7 @@ wheels/
 
 # Virtual environments
 .venv
+<<<<<<< HEAD
 .env
 venv/
 ENV/
@@ -15,3 +16,5 @@ env/
 env.bak/
 venv.bak/
 env/        
+=======
+>>>>>>> 2418005d4718898638358ba8f51ddcfecf50ae4b
