@@ -11,10 +11,7 @@ wheels/
 .env
 venv/
 ENV/
-<<<<<<< Updated upstream
 env/
 env.bak/
 venv.bak/
-=======
 env/        
->>>>>>> Stashed changes
