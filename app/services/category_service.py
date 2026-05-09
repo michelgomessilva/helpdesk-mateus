@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from app.repositories import CategoryRepository
+from infrastructure.repositories import CategoryRepository
 
 
 class CategoryService(BaseModel):
