@@ -2,7 +2,6 @@ from pydantic import BaseModel
 
 from infrastructure.repositories import TicketRepository
 
-
 class TicketService(BaseModel):
     repository: TicketRepository  # Injeção de dependência
 
