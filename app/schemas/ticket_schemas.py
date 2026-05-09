@@ -18,8 +18,10 @@ class TicketBase(BaseModel):
             raise ValueError("category_id deve ser maior que 0")
         return v
 
+
 class TicketCreate(TicketBase):
     pass
+
 
 class TicketUpdate(BaseModel):
     title: str | None = None
@@ -27,6 +29,7 @@ class TicketUpdate(BaseModel):
     category_id: int | None = None
     priority: Literal["baixa", "media", "alta"] | None = None
     status: Literal["aberto", "em_andamento", "fechado"] | None = None
+
 
 class TicketResponse(TicketBase):
     id: int
