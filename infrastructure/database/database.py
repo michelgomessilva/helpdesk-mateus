@@ -1,14 +1,17 @@
 import os
-from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 
-# Carrega as variáveis do arquivo .env
-load_dotenv()
+try:
+    from sqlalchemy import create_engine
+    from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy.orm import sessionmaker
+except ImportError as e:
+    raise ImportError("SQLAlchemy is required. Install it with: pip install sqlalchemy") from e
 
 # Pega a string de conexão do ambiente
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is not set")
 
 # Cria o motor (engine) de conexão
 engine = create_engine(DATABASE_URL)
