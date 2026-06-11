@@ -12,17 +12,15 @@ class CategoryRepository:   # sem BaseModel
         self.session.add(category)
         self.session.commit()
         self.session.refresh(category)
-        return {column.name: getattr(category, column.name) for column in category.__table__.columns}
+        return self._to_dict(category)
 
     def get_all(self) -> list:
         categories = self.session.query(Category).all()
-        return [{column.name: getattr(cat, column.name) for column in cat.__table__.columns} for cat in categories]
+        return [self._to_dict(c) for c in categories]
 
     def get_by_id(self, id: int) -> dict | None:
         category = self.session.query(Category).filter(Category.id == id).first()
-        if category:
-            return {column.name: getattr(category, column.name) for column in category.__table__.columns}
-        return None
+        return self._to_dict(category) if category else None
 
     def update(self, id: int, data: dict) -> dict | None:
         category = self.session.query(Category).filter(Category.id == id).first()
@@ -32,7 +30,7 @@ class CategoryRepository:   # sem BaseModel
             setattr(category, key, value)
         self.session.commit()
         self.session.refresh(category)
-        return {column.name: getattr(category, column.name) for column in category.__table__.columns}
+        return self._to_dict(category)
 
     def delete(self, id: int) -> bool:
         category = self.session.query(Category).filter(Category.id == id).first()
@@ -41,3 +39,6 @@ class CategoryRepository:   # sem BaseModel
             self.session.commit()
             return True
         return False
+    
+    def _to_dict(self, obj):
+        return {column.name: getattr(obj, column.name) for column in obj.__table__.columns}

@@ -9,4 +9,7 @@ class CommentRepository:
         self.session.add(comment)
         self.session.commit()
         self.session.refresh(comment)
-        return {column.name: getattr(comment, column.name) for column in comment.__table__.columns}
+        return self._to_dict(comment)
+    
+    def _to_dict(self, obj):
+        return {column.name: getattr(obj, column.name) for column in obj.__table__.columns}

@@ -4,10 +4,13 @@ class TicketHistoryRepository:
     def __init__(self, session):
         self.session = session
 
-    def create(self, history_data: dict) -> dict:
+    def create(self, history_data: dict, commit: bool = True) -> dict:
         history = TicketHistory(**history_data)
         self.session.add(history)
-        self.session.commit()
+        if commit:
+            self.session.commit()
+        else:
+            self.session.flush()
         self.session.refresh(history)
         return {column.name: getattr(history, column.name) for column in history.__table__.columns}
 

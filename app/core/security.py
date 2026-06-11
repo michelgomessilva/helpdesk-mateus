@@ -11,9 +11,32 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
+
+def get_env_var(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value
+
+
+def get_env_int(name: str, default: int) -> int:
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    try:
+        return int(raw_value)
+    except ValueError:
+        raise RuntimeError(f"Invalid integer value for {name}: {raw_value}")
+
+
+SECRET_KEY = get_env_var("SECRET_KEY")
+ALGORITHM = get_env_var("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = get_env_int("ACCESS_TOKEN_EXPIRE_MINUTES", 30)
+
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY não está definida no arquivo .env")
+if not ALGORITHM:
+    raise ValueError("ALGORITHM não está definido")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 
@@ -60,8 +83,6 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     user = user_repo.get_by_id(int(user_id))
     if user is None:
         raise HTTPException(status_code=401, detail="Usuário não encontrado")
+    # Remove o campo da senha hash antes de retornar
+    user.pop("hashed_password", None)
     return user
-
-print(f"[DEBUG] SECRET_KEY = {SECRET_KEY}")
-print(f"[DEBUG] ALGORITHM = {ALGORITHM}")
-print(f"[DEBUG] ACCESS_TOKEN_EXPIRE_MINUTES = {ACCESS_TOKEN_EXPIRE_MINUTES}")

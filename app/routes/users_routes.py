@@ -13,7 +13,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     user_repo = UserRepository(db)
     service = UserService(user_repo)
     try:
-        new_user = service.register(user_data.dict())
+        new_user = service.register(user_data.model_dump())
         return new_user
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

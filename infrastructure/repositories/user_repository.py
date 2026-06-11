@@ -31,5 +31,7 @@ class UserRepository:
         """Busca um usuário pelo ID."""
         user = self.session.query(User).filter(User.id == user_id).first()
         if user:
-            return {column.name: getattr(user, column.name) for column in user.__table__.columns}
+            user_dict = {column.name: getattr(user, column.name) for column in user.__table__.columns}
+            user_dict.pop("hashed_password", None)
+            return user_dict
         return None
