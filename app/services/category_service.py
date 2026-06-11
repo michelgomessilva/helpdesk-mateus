@@ -1,10 +1,9 @@
-from pydantic import BaseModel
-
 from infrastructure.repositories import CategoryRepository
 
 
-class CategoryService(BaseModel):
-    repository: CategoryRepository  # Injeção de dependência
+class CategoryService:
+    def __init__(self, repository):
+        self.repository = repository
 
     def create_category(self, category_data: dict) -> dict:
         return self.repository.create(category_data)
@@ -19,4 +18,4 @@ class CategoryService(BaseModel):
         return self.repository.update(id, data)
 
     def delete_category(self, id: int) -> bool:
-        return self.repository.delete(id) 
+        return self.repository.delete(id)

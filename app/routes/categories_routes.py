@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-
+from infrastructure.database.database import get_db
+from sqlalchemy.orm import Session
 from app.schemas.category_schemas import CategoryCreate, CategoryResponse
 from app.services import CategoryService
 from infrastructure.repositories import CategoryRepository
@@ -18,9 +19,9 @@ def create_category(
     return service.create_category(category.model_dump())
 
 @router.get("/", response_model=list[CategoryResponse])
-def list_categories(category_repo: CategoryRepository = Depends(get_category_repository)):
-    """Lista todas as categorias"""
-    service = CategoryService(repository=category_repo)
+def list_categories(db: Session = Depends(get_db)):
+    repo = CategoryRepository(db)
+    service = CategoryService(repo)
     return service.get_all_categories()
 
 @router.get("/{category_id}", response_model=CategoryResponse)

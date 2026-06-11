@@ -14,3 +14,8 @@ app.include_router(health_router)
 app.include_router(categories_router)
 app.include_router(tickets_router)
 app.include_router(comments_router)
+
+from app.routes.users_routes import router as users_router
+
+# depois de criar o app
+app.include_router(users_router)

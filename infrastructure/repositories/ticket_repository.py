@@ -1,45 +1,58 @@
-import datetime
+from sqlalchemy.orm import Session
 
-from pydantic import BaseModel
+from infrastructure.models.ticket_models import Ticket
 
 
-class TicketRepository(BaseModel):
-    def __init__(self):
-        self._tickets = []
-        self._next_id = 1
+class TicketRepository:
+    def __init__(self, session: Session):
+        self.session = session
 
-    def create(self, ticket_data: dict) -> dict:
-        now = datetime.datetime.now()
-        ticket = {
-            "id": self._next_id,
-            **ticket_data,
-            "created_at": now,
-            "updated_at": now
-        }
-        self._tickets.append(ticket)
-        self._next_id += 1
-        return ticket
+    @staticmethod
+    def _to_dict(ticket: Ticket) -> dict:
+        return {column.name: getattr(ticket, column.name) for column in ticket.__table__.columns}
+
+    def create(self, ticket_data: dict, commit: bool = True) -> dict:
+        ticket = Ticket(**ticket_data)
+        self.session.add(ticket)
+        if commit:
+            self.session.commit()
+        else:
+            self.session.flush()
+        self.session.refresh(ticket)
+        return self._to_dict(ticket)
 
     def get_all(self) -> list:
-        return self._tickets
+        tickets = self.session.query(Ticket).all()
+        return [self._to_dict(t) for t in tickets]
 
     def get_by_id(self, id: int) -> dict | None:
-        for ticket in self._tickets:
-            if ticket["id"] == id:
-                return ticket
-        return None
+        t = self.session.query(Ticket).filter(Ticket.id == id).first()
+        if not t:
+            return None
+        return self._to_dict(t) if t else None
 
-    def update(self, id: int, data: dict) -> dict | None:
-        ticket = self.get_by_id(id)
-        if ticket:
-            ticket.update(data)
-            ticket["updated_at"] = datetime.datetime.now()
-            return ticket
-        return None
+    def update(self, id: int, data: dict, commit: bool = True) -> dict | None:
+        t = self.session.query(Ticket).filter(Ticket.id == id).first()
+        if not t:
+            return None
+
+        for k, v in data.items():
+            setattr(t, k, v)
+
+        if commit:
+            self.session.commit()
+        else:
+            self.session.flush()
+        self.session.refresh(t)
+        return self._to_dict(t)
 
     def delete(self, id: int) -> bool:
-        ticket = self.get_by_id(id)
-        if ticket:
-            self._tickets.remove(ticket)
-            return True
-        return False
+        t = self.session.query(Ticket).filter(Ticket.id == id).first()
+        if not t:
+            return False
+        self.session.delete(t)
+        self.session.commit()
+        return True
+
+    def _to_dict(self, obj):
+        return {column.name: getattr(obj, column.name) for column in obj.__table__.columns}
