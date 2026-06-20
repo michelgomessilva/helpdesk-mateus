@@ -23,6 +23,17 @@ class CommentService():
         logger.info(f"Comentário criado com ID {result.get('id')} no ticket {ticket_id}")
         return result
 
-    
+    def get_comments_by_ticket(self, ticket_id: int) -> list:
+        logger.info(f"Listando comentários do ticket {ticket_id}")
+        result = self.comment_repo.get_by_ticket_id(ticket_id)
+        logger.info(f"Encontrados {len(result)} comentários para o ticket {ticket_id}")
+        return result
 
-
+def delete_comment(self, comment_id: int) -> bool:
+    logger.info(f"Tentando deletar comentário {comment_id}")
+    result = self.comment_repo.delete(comment_id)
+    if result:
+        logger.info(f"Comentário {comment_id} deletado")
+    else:
+        logger.warning(f"Comentário {comment_id} não encontrado para deleção")
+    return result
