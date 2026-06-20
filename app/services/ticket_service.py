@@ -68,17 +68,17 @@ class TicketService:
         if not ticket:
             return None
 
-        # Se a atualização inclui mudança de status
         if "status" in data:
             new_status = data["status"]
-            old_status = ticket.get("status")   # ticket é um dicionário
+            old_status = ticket.get("status")
             if not self._can_transition(old_status, new_status):
                 raise ValueError(f"Transição inválida: {old_status} -> {new_status}")
             if new_status == "fechado" and not data.get("resolution"):
                 raise ValueError("Para fechar o ticket, é necessário fornecer uma resolução")
+            if new_status == "aberto":
+                data["resolution"] = None
             if user_id:
                 self._add_history(ticket_id, user_id, "status", old_status, new_status)
 
-        # Realiza a atualização no repositório
         updated = self.repository.update(ticket_id, data)
         return updated
