@@ -12,4 +12,31 @@ def get_ticket_repository(db: Session = Depends(get_db)) -> TicketRepository:
     return TicketRepository(db)
 
 def get_comment_repository(db: Session = Depends(get_db)) -> CommentRepository:
+<<<<<<< Updated upstream
     return CommentRepository(db)
+=======
+    return CommentRepository(db)
+
+def get_user_repository(db: Session = Depends(get_db)) -> UserRepository:
+    return UserRepository(db)
+
+def get_ticket_history_repository(db: Session = Depends(get_db)) -> TicketHistoryRepository:
+    return TicketHistoryRepository(db)
+
+def require_roles(*roles: str):
+    def _require_roles(current_user: dict = Depends(get_current_user)) -> dict:
+        if current_user.get("role") not in roles:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permissão negada")
+        return current_user
+    return _require_roles
+
+from fastapi import Depends, HTTPException, status
+from app.core.security import get_current_user
+
+def require_roles(*allowed_roles: str):
+    def role_checker(current_user: dict = Depends(get_current_user)):
+        if current_user["role"] not in allowed_roles:
+            raise HTTPException(status_code=403, detail="Permissão insuficiente")
+        return current_user
+    return role_checker
+>>>>>>> Stashed changes
