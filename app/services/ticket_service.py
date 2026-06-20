@@ -1,12 +1,16 @@
 from infrastructure.repositories import TicketRepository
 from infrastructure.repositories.ticket_history_repository import TicketHistoryRepository
+from app.core.logging import logger
 
 class TicketService:
     def __init__(self, repository: TicketRepository):
         self.repository = repository
 
     def create_ticket(self, ticket_data: dict) -> dict:
-        return self.repository.create(ticket_data)
+        logger.info(f"Criando ticket com título: {ticket_data.get('title')}")
+        result = self.repository.create(ticket_data)
+        logger.info(f"Ticket criado com ID {result.get('id')}")
+        return result
 
     def get_all_tickets(self) -> list:
         return self.repository.get_all()
@@ -51,6 +55,7 @@ class TicketService:
 
     # ========== ATRIBUIR TICKET ==========
     def assign_ticket(self, ticket_id: int, assigned_to: int, user_id: int) -> dict | None:
+        logger.info(f"Atribuindo ticket {ticket_id} para usuário {assigned_to}")
         ticket = self.repository.get_by_id(ticket_id)
         if not ticket:
             return None
@@ -64,21 +69,33 @@ class TicketService:
 
     # ========== ATUALIZAR TICKET (COM VALIDAÇÃO DE STATUS) ==========
     def update_ticket(self, ticket_id: int, data: dict, user_id: int = None) -> dict | None:
+        logger.info(f"Tentando atualizar ticket {ticket_id}")  # ← LOG
+
         ticket = self.repository.get_by_id(ticket_id)
         if not ticket:
+            logger.warning(f"Ticket {ticket_id} não encontrado para atualização")  # ← LOG
             return None
 
         if "status" in data:
             new_status = data["status"]
             old_status = ticket.get("status")
+            logger.info(f"Mudando status do ticket {ticket_id}: {old_status} -> {new_status}")  # ← LOG
+
             if not self._can_transition(old_status, new_status):
+                logger.warning(f"Transição inválida tentada: {old_status} -> {new_status}")  # ← LOG
                 raise ValueError(f"Transição inválida: {old_status} -> {new_status}")
+
             if new_status == "fechado" and not data.get("resolution"):
+                logger.warning(f"Tentativa de fechar ticket {ticket_id} sem resolução")  # ← LOG
                 raise ValueError("Para fechar o ticket, é necessário fornecer uma resolução")
+
             if new_status == "aberto":
                 data["resolution"] = None
+                logger.info(f"Ticket {ticket_id} reaberto, resolução limpa")  # ← LOG
+
             if user_id:
                 self._add_history(ticket_id, user_id, "status", old_status, new_status)
 
         updated = self.repository.update(ticket_id, data)
+        logger.info(f"Ticket {ticket_id} atualizado com sucesso")  # ← LOG
         return updated
