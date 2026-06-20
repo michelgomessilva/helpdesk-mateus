@@ -1,45 +1,97 @@
-import datetime
+from sqlalchemy.orm import Session
 
-from pydantic import BaseModel
+from infrastructure.models.ticket_models import Ticket
 
 
-class TicketRepository(BaseModel):
-    def __init__(self):
-        self._tickets = []
-        self._next_id = 1
+class TicketRepository:
+    def __init__(self, session: Session):
+        self.session = session
 
     def create(self, ticket_data: dict) -> dict:
-        now = datetime.datetime.now()
-        ticket = {
-            "id": self._next_id,
-            **ticket_data,
-            "created_at": now,
-            "updated_at": now
+        ticket = Ticket(**ticket_data)
+        self.session.add(ticket)
+        self.session.commit()
+        self.session.refresh(ticket)
+        return {
+            "id": ticket.id,
+            "title": ticket.title,
+            "description": ticket.description,
+            "category_id": ticket.category_id,
+            "user_id": ticket.user_id,
+            "assigned_to": ticket.assigned_to,
+            "resolution": ticket.resolution,
+            "priority": ticket.priority,
+            "status": ticket.status,
+            "created_at": ticket.created_at,
+            "updated_at": ticket.updated_at,
         }
-        self._tickets.append(ticket)
-        self._next_id += 1
-        return ticket
 
     def get_all(self) -> list:
-        return self._tickets
+        tickets = self.session.query(Ticket).all()
+        return [
+            {
+                "id": t.id,
+                "title": t.title,
+                "description": t.description,
+                "category_id": t.category_id,
+                "user_id": t.user_id,
+                "assigned_to": t.assigned_to,
+                "resolution": t.resolution,
+                "priority": t.priority,
+                "status": t.status,
+                "created_at": t.created_at,
+                "updated_at": t.updated_at,
+            }
+            for t in tickets
+        ]
 
     def get_by_id(self, id: int) -> dict | None:
-        for ticket in self._tickets:
-            if ticket["id"] == id:
-                return ticket
-        return None
+        t = self.session.query(Ticket).filter(Ticket.id == id).first()
+        if not t:
+            return None
+        return {
+            "id": t.id,
+            "title": t.title,
+            "description": t.description,
+            "category_id": t.category_id,
+            "user_id": t.user_id,
+            "assigned_to": t.assigned_to,
+            "resolution": t.resolution,
+            "priority": t.priority,
+            "status": t.status,
+            "created_at": t.created_at,
+            "updated_at": t.updated_at,
+        }
 
     def update(self, id: int, data: dict) -> dict | None:
-        ticket = self.get_by_id(id)
-        if ticket:
-            ticket.update(data)
-            ticket["updated_at"] = datetime.datetime.now()
-            return ticket
-        return None
+        t = self.session.query(Ticket).filter(Ticket.id == id).first()
+        if not t:
+            return None
+
+        for k, v in data.items():
+            setattr(t, k, v)
+
+        self.session.commit()
+        self.session.refresh(t)
+        return {
+            "id": t.id,
+            "title": t.title,
+            "description": t.description,
+            "category_id": t.category_id,
+            "user_id": t.user_id,
+            "assigned_to": t.assigned_to,
+            "resolution": t.resolution,
+            "priority": t.priority,
+            "status": t.status,
+            "created_at": t.created_at,
+            "updated_at": t.updated_at,
+        }
 
     def delete(self, id: int) -> bool:
-        ticket = self.get_by_id(id)
-        if ticket:
-            self._tickets.remove(ticket)
-            return True
-        return False
+        t = self.session.query(Ticket).filter(Ticket.id == id).first()
+        if not t:
+            return False
+        self.session.delete(t)
+        self.session.commit()
+        return True
+
