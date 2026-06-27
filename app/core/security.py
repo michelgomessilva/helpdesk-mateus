@@ -61,7 +61,3 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if user is None:
         raise HTTPException(status_code=401, detail="Usuário não encontrado")
     return user
-
-print(f"[DEBUG] SECRET_KEY = {SECRET_KEY}")
-print(f"[DEBUG] ALGORITHM = {ALGORITHM}")
-print(f"[DEBUG] ACCESS_TOKEN_EXPIRE_MINUTES = {ACCESS_TOKEN_EXPIRE_MINUTES}")
