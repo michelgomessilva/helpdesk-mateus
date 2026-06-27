@@ -2,13 +2,19 @@ name: CI - Testes Automatizados
 
 on:
   push:
-    branches: [ main, develop, feature/* ]
+    branches: [ main, develop ]
   pull_request:
     branches: [ main ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/helpdesk_db
+      SECRET_KEY: supersecretkey
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
 
     services:
       postgres:
@@ -41,11 +47,7 @@ jobs:
         run: uv sync
 
       - name: Rodar migrações (banco de teste)
-        run: |
-          export DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/helpdesk_db
-          uv run alembic upgrade head
+        run: uv run alembic upgrade head
 
       - name: Rodar testes
-        run: |
-          export DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/helpdesk_db
-          uv run pytest -v
+        run: uv run pytest -v
