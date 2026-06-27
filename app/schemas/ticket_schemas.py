@@ -32,3 +32,13 @@ class TicketResponse(TicketBase):
     id: int
     created_at: datetime
     updated_at: datetime
+    assigned_to: int | None = None
+    resolution: str | None = None
+
+class TicketAssign(BaseModel):
+    assigned_to: int
+
+class TicketStatusUpdate(BaseModel):
+    status: str
+    resolution: str | None = None
+

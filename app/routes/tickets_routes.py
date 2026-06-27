@@ -1,22 +1,37 @@
 from fastapi import APIRouter, HTTPException, status, Depends
+from sqlalchemy.orm import Session
 
-from app.schemas.ticket_schemas import TicketCreate, TicketResponse, TicketUpdate
-from app.services import TicketService, CategoryService
-from infrastructure.repositories import TicketRepository, CategoryRepository
-from app.core.dependencies import get_ticket_repository, get_category_repository
+
+from app.core.dependencies import get_category_repository, get_ticket_repository
+from app.core.security import get_current_user
+from app.services import CategoryService, TicketService
+
+
+from app.schemas.ticket_history_schemas import TicketHistoryResponse
+from app.schemas.ticket_schemas import (
+    TicketAssign,
+    TicketCreate,
+    TicketResponse,
+    TicketStatusUpdate,
+    TicketUpdate,
+)
+from infrastructure.database.database import get_db
+
+from infrastructure.repositories import CategoryRepository, TicketRepository
+from infrastructure.repositories.ticket_history_repository import TicketHistoryRepository
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
-
 
 @router.post("/", response_model=TicketResponse, status_code=status.HTTP_201_CREATED)
 def create_ticket(
     ticket: TicketCreate,
-    ticket_repo: TicketRepository = Depends(get_ticket_repository),
-    category_repo: CategoryRepository = Depends(get_category_repository)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)   # <-- Adicione esta linha
 ):
-    """Cria um novo ticket (valida se category_id existe)"""
-    ticket_service = TicketService(repository=ticket_repo)
-    category_service = CategoryService(repository=category_repo)
+    ticket_repo = TicketRepository(db)
+    category_repo = CategoryRepository(db)
+    ticket_service = TicketService(ticket_repo)
+    category_service = CategoryService(category_repo)
     
     # Validar se a categoria existe
     category = category_service.get_category_by_id(ticket.category_id)
@@ -26,7 +41,11 @@ def create_ticket(
             detail=f"Categoria com ID {ticket.category_id} não encontrada"
         )
     
-    return ticket_service.create_ticket(ticket.model_dump())
+    # Converter os dados para dicionário e adicionar o user_id do usuário autenticado
+    ticket_data = ticket.model_dump()
+    ticket_data["user_id"] = current_user["id"]   # <-- Adicione esta linha
+    
+    return ticket_service.create_ticket(ticket_data)
 
 @router.get("/", response_model=list[TicketResponse])
 def list_tickets(
@@ -88,3 +107,56 @@ def update_ticket(
             detail=f"Ticket com ID {ticket_id} não encontrado"
         )
     return updated
+
+@router.patch("/{ticket_id}/assign", response_model=TicketResponse)
+def assign_ticket(
+    ticket_id: int,
+    assign_data: TicketAssign,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user["role"] not in ["agent", "admin"]:
+        raise HTTPException(status_code=403, detail="Permissão negada")
+    
+    ticket_repo = TicketRepository(db)
+    service = TicketService(ticket_repo)
+    
+    updated = service.assign_ticket(ticket_id, assign_data.assigned_to, current_user["id"])
+    if not updated:
+        raise HTTPException(status_code=404, detail="Ticket não encontrado")
+    return updated
+
+
+@router.patch("/{ticket_id}/status", response_model=TicketResponse)
+def update_ticket_status(
+    ticket_id: int,
+    status_data: TicketStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user["role"] not in ["agent", "admin"]:
+        raise HTTPException(status_code=403, detail="Permissão negada")
+    
+    ticket_repo = TicketRepository(db)
+    service = TicketService(ticket_repo)
+    update_data = status_data.dict(exclude_unset=True)
+    
+    try:
+        updated = service.update_ticket(ticket_id, update_data, current_user["id"])
+        if not updated:
+            raise HTTPException(status_code=404, detail="Ticket não encontrado")
+        return updated
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/{ticket_id}/history", response_model=list[TicketHistoryResponse])
+def get_ticket_history(
+    ticket_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    # Qualquer usuário logado pode ver o histórico? Ajuste conforme regra
+    history_repo = TicketHistoryRepository(db)
+    history = history_repo.get_by_ticket_id(ticket_id)
+    return history
